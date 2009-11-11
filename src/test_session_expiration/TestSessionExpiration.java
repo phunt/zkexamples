@@ -27,16 +27,16 @@ public class TestSessionExpiration {
 
     public static void main(String[] args) throws Exception {
         System.out.println("Starting zk1");
-        
+
         // Open a client connection - zk1
         CountdownWatcher watch1 = new CountdownWatcher("zk1");
         ZooKeeper zk1 = new ZooKeeper(args[0], 10000, watch1);
         watch1.waitForConnected(10000);
-        
+
         zk1.getData("/", false, null);
 
         System.out.println("Starting zk2");
-        
+
         // now attach a second client zk2 with the same sessionid/passwd
         CountdownWatcher watch2 = new CountdownWatcher("zk2");
         ZooKeeper zk2 = new ZooKeeper(args[0], 10000, watch2,
@@ -46,7 +46,7 @@ public class TestSessionExpiration {
         // close the second client, the session is now invalid
         System.out.println("Closing zk2");
         zk2.close();
-        
+
         System.out.println("Attempting use of zk1");
 
         try {
@@ -56,18 +56,23 @@ public class TestSessionExpiration {
             System.out.println("Got session expired on zk1!");
             return;
         }
-        // there's a gotcha though - if you run this on against a quorum
-        // (vs standalone) you may get a KeeperException.SessionMovedException
-        // instead. This is thrown if a client moved from one server to
-        // a second, but then attempts to talk to the first server (should
-        // never happen, but could in certain bad situations), this example
-        // simulates that situation in the sense that the client with 
-        // session id zk1.getSessionId() has moved 
-        // Again, if you run against standalone server you won't see this
-        // If you run against quorum you need to determine which server
-        // zk1 is attached to - we are adding this capability in 3.3.0 - and
-        // have zk2 attach to that same server.
-        
+        // 3.2.0 and later:
+        // There's a gotcha though - In version 3.2.0 and later if you
+        // run this on against a quorum (vs standalone) you may get a
+        // KeeperException.SessionMovedException instead. This is
+        // thrown if a client moved from one server to a second, but
+        // then attempts to talk to the first server (should never
+        // happen, but could in certain bad situations), this example
+        // simulates that situation in the sense that the client with
+        // session id zk1.getSessionId() has moved
+        //
+        // Again, if you run against standalone server you won't see
+        // this. If you run against a server version 3.1.x or earlier
+        // you won't see this.
+        // If you run against quorum you need to easily determine which
+        // server zk1 is attached to - we are adding this capability
+        // in 3.3.0 - and have zk2 attach to that same server.
+
         System.err.println("Oops, this should NOT have happened!");
     }
 }
