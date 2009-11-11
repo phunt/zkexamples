@@ -65,6 +65,12 @@ public class TestSessionExpiration {
         // happen, but could in certain bad situations), this example
         // simulates that situation in the sense that the client with
         // session id zk1.getSessionId() has moved
+        // 
+        // One way around session moved on a quorum is to have each
+        // client connect to the same, single server in the cluster
+        // (so pass a single host:port rather than a list). This 
+        // will ensure that you get the session expiration, and
+        // not session moved exception.
         //
         // Again, if you run against standalone server you won't see
         // this. If you run against a server version 3.1.x or earlier
